@@ -1,7 +1,19 @@
 {
   "name": "PWA Chat App",
   "short_name": "Chat App",
-  "icons": [],
+  "icons": [
+    {
+      "src": "/static/images/icons/icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/icons/maskable_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
   "lang": "en-US",
   "start_url": "/",
   "display": "standalone",

@@ -2,7 +2,7 @@ const cacheName = 'pwa-chat-app'
 const files = [
     '/',
     '/static/js/main.js'
-]
+];
 
 self.addEventListener('install', e => {
     e.waitUntil(
