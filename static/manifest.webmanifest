@@ -1,0 +1,10 @@
+{
+  "name": "PWA Chat App",
+  "short_name": "Chat App",
+  "icons": [],
+  "lang": "en-US",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "white",
+  "theme_color": "white"
+}
