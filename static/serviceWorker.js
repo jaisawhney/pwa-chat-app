@@ -1,4 +1,4 @@
-const cacheName = 'pwa-chat-app'
+const cacheName = 'chat-app_v1'
 const files = [
     '/',
     '/static/js/main.js'
@@ -14,8 +14,13 @@ self.addEventListener('install', e => {
 
 self.addEventListener('fetch', e => {
     e.respondWith(
-        caches.match(e.request).then(res => {
-            return res || fetch(e.request);
+        fetch(e.request.url).then(res => {
+            return caches.open(cacheName).then(cache => {
+                cache.put(e.request, res.clone());
+                return res;
+            });
+        }).catch(() => {
+            return caches.match(e.request.url);
         })
     )
 });
