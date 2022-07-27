@@ -1,7 +1,8 @@
 const cacheName = 'chat-app_v1'
 const files = [
     '/',
-    '/static/js/main.js'
+    '/static/js/main.js',
+    '/static/images/favicon.ico'
 ];
 
 self.addEventListener('install', e => {
@@ -27,7 +28,7 @@ self.addEventListener('fetch', e => {
 
 self.addEventListener('activate', function (event) {
     event.waitUntil(
-        caches.keys().then((keys) => {
+        caches.keys().then(keys => {
             return Promise.all(keys.filter(key => key !== cacheName).map(key => {
                 return caches.delete(key);
             }))
