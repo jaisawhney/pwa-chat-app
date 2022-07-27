@@ -1,13 +1,14 @@
 {
   "name": "pwa-chat-app",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "app.mjs",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.mjs"
   },
   "dependencies": {
     "ejs": "^3.1.8",
-    "express": "^4.18.1"
+    "express": "^4.18.1",
+    "ws": "^8.8.1"
   },
   "engines": {
     "node": "16.x"
