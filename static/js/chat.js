@@ -1,23 +1,37 @@
-const ws = new WebSocket(`ws://${location.host}/ws`);
+let ws;
 
-ws.onmessage = function (event) {
-    const payload = JSON.parse(event.data);
-    switch (payload.type) {
-        case 'message':
-            const msgDate = new Date(payload.params.date).toLocaleString([], {
-                year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
+function init() {
+    ws = new WebSocket(`ws://${location.host}/ws`);
 
-            const messages = document.getElementById('msgs');
-            const msgContainer = document.createElement('div');
-            msgContainer.classList.add('msg');
+    ws.onclose = function (e) {
+        setTimeout(() => {
+            init();
+        }, 1000);
+    };
 
-            const msg = document.createElement('p');
-            msg.innerHTML = msgDate + ' - ' + payload.params.content;
-            msgContainer.appendChild(msg)
+    ws.onerror = function (err) {
+        ws.close();
+    };
 
-            messages.appendChild(msgContainer);
-            break;
+    ws.onmessage = function (e) {
+        const payload = JSON.parse(e.data);
+        switch (payload.type) {
+            case 'message':
+                const msgDate = new Date(payload.params.date).toLocaleString([], {
+                    year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                const messages = document.getElementById('msgs');
+                const msgContainer = document.createElement('div');
+                msgContainer.classList.add('msg');
+
+                const msg = document.createElement('p');
+                msg.innerHTML = msgDate + ' - ' + payload.params.content;
+                msgContainer.appendChild(msg)
+
+                messages.appendChild(msgContainer);
+                break;
+        }
     }
 }
 
@@ -37,3 +51,4 @@ msgForm.addEventListener('submit', e => {
     msgInput.value = '';
 
 });
+init()
