@@ -20,6 +20,7 @@ wss.on('connection', ws => {
 
     const joinRoom = params => {
         const room = params.roomId || nanoid(10);
+
         if (!rooms[room]) {
             rooms[room] = [ws];
         } else {
@@ -29,13 +30,14 @@ wss.on('connection', ws => {
         ws.room = room;
     }
 
-    const leaveRoom = (params) => {
-        const roomId = params.roomId;
-        delete rooms[roomId][ws];
+    const leaveRoom = () => {
+        const room = ws.room;
+        rooms[room] = rooms[room].filter(socket => socket !== ws);
 
-        if (rooms[roomId].length === 0) {
-            delete rooms[roomId];
+        if (rooms[room].length === 0) {
+            delete rooms[room];
         }
+        ws.room = undefined;
     }
 
     ws.on('message', data => {
@@ -48,7 +50,7 @@ wss.on('connection', ws => {
                 break;
 
             case 'leaveRoom':
-                leaveRoom(params);
+                leaveRoom();
                 break;
 
             case 'message':
@@ -58,7 +60,7 @@ wss.on('connection', ws => {
     });
 
     ws.on('close', () => {
-        leaveRoom({roomId: ws.room});
+        leaveRoom();
     });
 });
 
