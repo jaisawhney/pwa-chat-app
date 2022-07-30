@@ -14,6 +14,7 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('fetch', e => {
+    if(e.request.method === 'POST') return;
     e.respondWith(
         fetch(e.request.url).then(res => {
             return caches.open(cacheName).then(cache => {

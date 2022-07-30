@@ -1,15 +1,25 @@
 let ws;
 
+const roomId = document.getElementById('roomId');
 function init() {
     ws = new WebSocket(`ws://${location.host}/ws`);
 
-    ws.onclose = function (e) {
+    ws.onopen = function () {
+        ws.send(JSON.stringify({
+            type: 'joinRoom',
+            params: {
+                roomId: roomId.value
+            }
+        }));
+    };
+
+    ws.onclose = function () {
         setTimeout(() => {
             init();
         }, 1000);
     };
 
-    ws.onerror = function (err) {
+    ws.onerror = function () {
         ws.close();
     };
 
@@ -23,7 +33,6 @@ function init() {
 
                 const messages = document.getElementById('msgs');
                 const msgContainer = document.createElement('div');
-                msgContainer.classList.add('msg');
 
                 const msg = document.createElement('p');
                 msg.innerHTML = msgDate + ' - ' + payload.params.content;

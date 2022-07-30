@@ -1,13 +1,14 @@
 import express from 'express';
 import http from 'http';
 import {WebSocket, WebSocketServer} from 'ws'
-import crypto from 'crypto';
+import {nanoid} from 'nanoid'
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({server});
 
-const rooms = {};
+
+let rooms = {};
 wss.on('connection', ws => {
     const broadcast = (payload, roomId) => {
         for (const client of rooms[roomId] || wss.clients) {
@@ -17,50 +18,47 @@ wss.on('connection', ws => {
         }
     }
 
-    const createRoom = () => {
-        const roomId = crypto.randomUUID();
+    const joinRoom = params => {
+        const room = params.roomId || nanoid(10);
+        if (!rooms[room]) {
+            rooms[room] = [ws];
+        } else {
+            rooms[room].push(ws);
+        }
 
-        rooms[roomId] = [ws];
-        ws.room = roomId;
-        return roomId
-    }
-
-    const joinRoom = (params) => {
-        const roomId = params.roomId
-
-        if (!rooms[roomId]) return;
-        if (!rooms[roomId][ws]) return;
-
-        rooms[roomId].push(ws);
-        ws.room = roomId;
+        ws.room = room;
     }
 
     const leaveRoom = (params) => {
-        const roomId = params.roomId
+        const roomId = params.roomId;
+        delete rooms[roomId][ws];
 
-        if (rooms[roomId].length === 1) {
-            delete rooms[roomId]
-        } else {
-            delete rooms[roomId][ws]
+        if (rooms[roomId].length === 0) {
+            delete rooms[roomId];
         }
     }
 
     ws.on('message', data => {
         const payload = JSON.parse(data);
+        const {type, params} = payload;
 
-        switch (payload.type) {
+        switch (type) {
             case 'joinRoom':
-                joinRoom(payload.params);
+                joinRoom(params);
                 break;
 
             case 'leaveRoom':
-                leaveRoom(payload.params);
+                leaveRoom(params);
                 break;
 
             case 'message':
-                broadcast(JSON.stringify(payload));
+                broadcast(JSON.stringify(payload), ws.room);
                 break;
         }
+    });
+
+    ws.on('close', () => {
+        leaveRoom({roomId: ws.room});
     });
 });
 
@@ -75,15 +73,15 @@ app.get('/static/serviceWorker.js', (req, res) => {
     });
 });
 
+app.use(express.urlencoded({extended: false}));
 app.use('/static', express.static('static'));
 
 app.get('/', (req, res) => {
     res.render('index');
 });
 
-app.get('/chat/:chatId', (req, res) => {
-    //console.log(req.params?.chatId)
-    res.render('chat');
+app.get('/rooms/:roomId', (req, res) => {
+    res.render('chat', {roomId: req.params.roomId});
 });
 
 const port = parseInt(process.env.PORT) || 3000;
