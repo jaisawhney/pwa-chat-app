@@ -1,90 +1,19 @@
 import express from 'express';
 import http from 'http';
-import {WebSocket, WebSocketServer} from 'ws'
-import {nanoid} from 'nanoid'
+import {indexRoutes, roomRoutes} from './routes/index.mjs'
+import ws from './websockets/index.mjs'
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({server});
-
-
-let rooms = {};
-wss.on('connection', ws => {
-    const broadcast = (payload, roomId) => {
-        for (const client of rooms[roomId] || wss.clients) {
-            if (client.readyState === WebSocket.OPEN && client !== ws) {
-                client.send(payload);
-            }
-        }
-    }
-
-    const joinRoom = params => {
-        const room = params.roomId || nanoid(10);
-
-        if (!rooms[room]) {
-            rooms[room] = [ws];
-        } else {
-            rooms[room].push(ws);
-        }
-
-        ws.room = room;
-    }
-
-    const leaveRoom = () => {
-        const room = ws.room;
-        rooms[room] = rooms[room].filter(socket => socket !== ws);
-
-        if (rooms[room].length === 0) {
-            delete rooms[room];
-        }
-        ws.room = undefined;
-    }
-
-    ws.on('message', data => {
-        const payload = JSON.parse(data);
-        const {type, params} = payload;
-
-        switch (type) {
-            case 'joinRoom':
-                joinRoom(params);
-                break;
-
-            case 'leaveRoom':
-                leaveRoom();
-                break;
-
-            case 'message':
-                broadcast(JSON.stringify(payload), ws.room);
-                break;
-        }
-    });
-
-    ws.on('close', () => {
-        leaveRoom();
-    });
-});
 
 app.set('view engine', 'ejs');
 
-app.get('/static/serviceWorker.js', (req, res) => {
-    res.sendFile('/static/serviceWorker.js', {
-        root: '.',
-        headers: {
-            'Service-Worker-Allowed': '/'
-        }
-    });
-});
-
 app.use(express.urlencoded({extended: false}));
+app.use('/', indexRoutes);
+app.use('/rooms', roomRoutes);
 app.use('/static', express.static('static'));
 
-app.get('/', (req, res) => {
-    res.render('index');
-});
-
-app.get('/rooms/:roomId', (req, res) => {
-    res.render('chat', {roomId: req.params.roomId});
-});
+ws(server);
 
 const port = parseInt(process.env.PORT) || 3000;
 server.listen(port, () => {

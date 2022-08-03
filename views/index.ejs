@@ -9,11 +9,15 @@
                 <h1>Chat App</h1>
                 <p class="text-muted">A multi-room chat app</p>
                 <form action="/rooms" method="POST" id="roomForm">
-                    <div class="input-group">
+                    <div class="input-group my-1">
                         <input class="form-control" name="roomTopic" id="roomTopic" type="text"
                                placeholder="Room Topic"/>
                         <button class="btn btn-primary" type="submit">Create!</button>
                     </div>
+                    <input class="form-check-input" name="private" type="checkbox" id="private">
+                    <label class="form-check-label" for="private">
+                        Private
+                    </label>
                 </form>
                 <script src="/static/js/main.js"></script>
             </div>
