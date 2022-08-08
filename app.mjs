@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import {indexRoutes, roomRoutes} from './routes/index.mjs'
+import {indexRoutes} from './routes/index.mjs'
 import ws from './websockets/index.mjs'
 
 const app = express();
@@ -10,7 +10,6 @@ app.set('view engine', 'ejs');
 
 app.use(express.urlencoded({extended: false}));
 app.use('/', indexRoutes);
-app.use('/rooms', roomRoutes);
 app.use('/static', express.static('static'));
 
 ws(server);

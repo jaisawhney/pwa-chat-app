@@ -4,23 +4,40 @@
         <%- include('./partials/header') %>
     </head>
     <body>
-        <div class="container-flex vh-100">
-            <div class="d-flex flex-column align-items-center justify-content-center vh-100">
-                <h1>Chat App</h1>
-                <p class="text-muted">A multi-room chat app</p>
-                <form action="/rooms" method="POST" id="roomForm">
-                    <div class="input-group my-1">
-                        <input class="form-control" name="roomTopic" id="roomTopic" type="text"
-                               placeholder="Room Topic"/>
-                        <button class="btn btn-primary" type="submit">Create!</button>
+        <div class="container vh-100">
+            <h1>Chat App</h1>
+            <!--<p class="text-muted">A multi-room chat app</p>-->
+            <div class="row h-50">
+                <div class="col-md-9 d-flex flex-column">
+                    <div id="msgs" class="bg-light overflow-scroll h-100"></div>
+                    <form id="sendMsg" class="mt-auto">
+                        <fieldset disabled>
+                            <div class="input-group">
+                                <input class="form-control" type="text" id="msgInput"
+                                       placeholder="Your message..."/>
+                                <input class="btn btn-primary" type="submit"/>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="col-md-3 d-flex flex-column">
+                    <div class="rooms overflow-scroll">
+                        <% for (room in rooms) { %>
+                            <p><%= room %>></p>
+                        <% } %>
                     </div>
-                    <input class="form-check-input" name="private" type="checkbox" id="private">
-                    <label class="form-check-label" for="private">
-                        Private
-                    </label>
-                </form>
-                <script src="/static/js/main.js"></script>
+                    <form id="createRoom" class="mt-auto">
+                        <div class="input-group">
+                            <input class="form-control" name="roomTopic" id="roomTopic" type="text"
+                                   placeholder="Room Topic"/>
+                            <button class="btn btn-primary" type="submit">Create!</button>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            <script src="/static/js/main.js"></script>
+            <script src="/static/js/chat.js"></script>
         </div>
     </body>
 </html>
