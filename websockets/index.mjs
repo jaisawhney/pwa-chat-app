@@ -1,57 +1,66 @@
 import {WebSocket, WebSocketServer} from 'ws'
-import {nanoid} from "nanoid";
+
+export let rooms = {};
 
 export default server => {
     const wss = new WebSocketServer({server});
 
-    // TODO: Use a DB for room storage (SQL?)
-    let rooms = {};
     wss.on('connection', ws => {
-        const broadcast = (payload, roomId) => {
+        ws.send(JSON.stringify(['updateRoomList', {
+            rooms: Object.keys(rooms)
+        }]));
+
+        const broadcast = (payload, roomId, inclClient = false) => {
             for (const client of rooms[roomId] || wss.clients) {
-                if (client.readyState === WebSocket.OPEN && client !== ws) {
+                if ((client.readyState === WebSocket.OPEN) && (inclClient || client !== ws)) {
                     client.send(payload);
                 }
             }
         }
 
-        const joinRoom = params => {
-            const room = params.roomId || nanoid(10);
+        const joinRoom = (payload) => {
+            const room = payload?.room?.toLowerCase();
+            if (room) {
+                leaveRoom();
 
-            if (!rooms[room]) {
-                rooms[room] = [ws];
-            } else {
-                rooms[room].push(ws);
+                if (!rooms[room]) {
+                    rooms[room] = [ws];
+                    broadcast(JSON.stringify(['updateRoomList', {
+                        rooms: Object.keys(rooms)
+                    }]), null, true);
+                } else {
+                    rooms[room].push(ws);
+                }
+                ws.room = room;
             }
-
-            ws.room = room;
         }
 
         const leaveRoom = () => {
             const room = ws.room;
-            rooms[room] = rooms[room].filter(socket => socket !== ws);
-
-            if (rooms[room].length === 0) {
-                delete rooms[room];
+            if (room) {
+                rooms[room] = rooms[room].filter(socket => socket !== ws);
+                if (rooms[room].length === 0) {
+                    delete rooms[room];
+                }
+                ws.room = undefined;
             }
-            ws.room = undefined;
         }
 
-        ws.on('message', data => {
-            const payload = JSON.parse(data);
-            const {type, params} = payload;
+        const chatMsg = (payload) => {
+            broadcast(JSON.stringify(['chatMsg', payload]), ws.room);
+        }
 
-            switch (type) {
+        ws.on('message', msg => {
+            const data = JSON.parse(msg);
+            const [eventName, payload] = data;
+
+            switch (eventName) {
                 case 'joinRoom':
-                    joinRoom(params);
+                    joinRoom(payload);
                     break;
 
-                case 'leaveRoom':
-                    leaveRoom();
-                    break;
-
-                case 'message':
-                    broadcast(JSON.stringify(payload), ws.room);
+                case 'chatMsg':
+                    chatMsg(payload);
                     break;
             }
         });
