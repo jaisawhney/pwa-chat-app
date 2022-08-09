@@ -41,6 +41,9 @@ export default server => {
                 rooms[room] = rooms[room].filter(socket => socket !== ws);
                 if (rooms[room].length === 0) {
                     delete rooms[room];
+                    broadcast(JSON.stringify(['updateRoomList', {
+                        rooms: Object.keys(rooms)
+                    }]), null, true);
                 }
                 ws.room = undefined;
             }
